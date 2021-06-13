@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "nobreak",
+  "version": "${version}",
+  "name": "No Break",
+  "description": "Forcibly disables usage of a tool when it is at low durability.",
+  "authors": [
+    "NiChrosia"
+  ],
+  "contributors": [
+    "Potatoboy9999"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/no-strip",
+    "issues": "https://github.com/PotatoPresident/NoStrip/issues"
+  },
+  "license": "MIT",
+  "icon": "icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "nichrosia.nobreak.client.NoBreakClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.7.2",
+    "fabric": "*",
+    "minecraft": "1.16.x"
+  }
+}

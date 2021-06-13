@@ -1,0 +1,9 @@
+{
+  "text.nobreak.toggle": "Breaking %s",
+  "text.nobreak.on" : "§a§lOn",
+  "text.nobreak.off" : "§c§lOff",
+  "text.nobreak.prevented" : "§aNoBreak has prevented this action",
+  "text.nobreak.enableby" : "§aNoBreak has prevented this action, press %s§a to toggle",
+  "key.nobreak.togglebreak": "Toggle Tool Disabling",
+  "category.nobreak.title" : "No Break"
+}
