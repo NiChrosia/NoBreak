@@ -1,0 +1,17 @@
+{
+  "text.nobreak.tool_break_prevented": "§cNoBreak has prevented this block from breaking due to low tool durability, press %s§c to toggle",
+  "text.nobreak.toggled_tool_breakage": "§7Toggled tool breakage to %s",
+
+  "title.nobreak.config": "NoBreak Config",
+
+  "category.nobreak.general": "General",
+  "category.nobreak.keybindings": "NoBreak",
+
+  "setting.nobreak.do_break": "Allow tool breaking at one durability",
+  "setting.nobreak.do_feedback": "Notify block breaking prevention",
+  "setting.nobreak.diamond+_tools_can_break": "Allow diamond tools or better to break",
+  "setting.nobreak.enchanted_tools_can_break": "Allow enchanted tools to break",
+
+  "key.nobreak.toggle_tool_breakage": "Toggle tool breakage",
+  "key.keyboard.y": "Y"
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "nobreak",
+  "version": "${version}",
+  "name": "No Break",
+  "description": "Forcibly disables usage of a tool when it is at low durability.",
+  "authors": [
+    "NiChrosia"
+  ],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/nobreak",
+    "issues": "https://github.com/NiChrosia/NoBreak/issues"
+  },
+  "license": "MIT",
+  "icon": "assets/nobreak/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      {
+        "adapter": "kotlin",
+        "value": "nichrosia.nobreak.NoBreak"
+      }
+    ],
+    "modmenu": [
+      {
+        "adapter": "kotlin",
+        "value": "nichrosia.nobreak.integration.NBModMenuIntegration"
+      }
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.7.2",
+    "fabric": "*",
+    "minecraft": "1.17.x",
+    "fabric-key-binding-api-v1": "*"
+  }
+}
