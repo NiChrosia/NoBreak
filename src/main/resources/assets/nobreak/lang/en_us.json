@@ -1,6 +1,7 @@
 {
   "text.nobreak.tool_break_prevented": "§cNoBreak has prevented this block from breaking due to low tool durability, press %s§c to toggle",
   "text.nobreak.toggled_tool_breakage": "§7Toggled tool breakage to %s",
+  "text.nobreak.toggled_item_blacklist": "§7Toggled item blacklist to %s§7 for %s",
 
   "title.nobreak.config": "NoBreak Config",
 
@@ -13,5 +14,5 @@
   "setting.nobreak.enchanted_tools_can_break": "Allow enchanted tools to break",
 
   "key.nobreak.toggle_tool_breakage": "Toggle tool breakage",
-  "key.keyboard.y": "Y"
+  "key.nobreak.toggle_current_item_blacklist": "Toggle blacklist for current item"
 }

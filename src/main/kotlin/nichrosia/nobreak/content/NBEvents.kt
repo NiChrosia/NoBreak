@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
 import net.minecraft.item.ToolItem
 import net.minecraft.text.TranslatableText
 import nichrosia.nobreak.util.MessageUtil.inform
+import nichrosia.nobreak.util.MessageUtil.onOrOff
 
 object NBEvents : NBContent {
     override fun register() {
@@ -24,14 +25,47 @@ object NBEvents : NBContent {
         })
 
         ClientTickEvents.END_CLIENT_TICK.register {
-            var hasToggled = false
+            it.player?.let { player ->
+                var hasToggled = false
 
-            while (NBKeyBinds.toggleToolBreakage.wasPressed() && !hasToggled) {
-                NBSettings.doBreak = !NBSettings.doBreak
+                while (NBKeyBinds.toggleToolBreakage.wasPressed() && !hasToggled) {
+                    NBSettings.doBreak = !NBSettings.doBreak
 
-                it.player?.inform(TranslatableText("text.nobreak.toggled_tool_breakage", if (NBSettings.doBreak) "on" else "off"))
+                    player.inform(
+                        TranslatableText(
+                            "text.nobreak.toggled_tool_breakage",
+                            onOrOff(NBSettings.doBreak)
+                        )
+                    )
 
-                hasToggled = true
+                    hasToggled = true
+                }
+            }
+        }
+
+        ClientTickEvents.END_CLIENT_TICK.register {
+            it.player?.let { player ->
+                var hasToggled = false
+
+                while (NBKeyBinds.toggleCurrentItemBlacklist.wasPressed() && !hasToggled) {
+                    player.mainHandStack.item.let { item ->
+                        if (NBSettings.toolBlacklist.contains(item)) {
+                            NBSettings.toolBlacklist.remove(item)
+                        } else {
+                            NBSettings.toolBlacklist.add(item)
+                        }
+                    }
+
+                    player.inform(
+                        TranslatableText(
+                            "text.nobreak.toggled_item_blacklist",
+                            onOrOff(NBSettings.toolBlacklist.contains(player.mainHandStack.item)),
+                            player.mainHandStack.item.name
+                        )
+                    )
+
+                    hasToggled = true
+                }
             }
         }
 
