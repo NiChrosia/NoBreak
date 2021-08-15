@@ -3,10 +3,8 @@ package nichrosia.nobreak.content
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
-import net.minecraft.item.ToolItem
-import net.minecraft.item.ToolMaterials
-import net.minecraft.util.Identifier
-import net.minecraft.util.registry.Registry
+import nichrosia.nobreak.util.DataStreams.readItemArr
+import nichrosia.nobreak.util.DataStreams.writeItemArr
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
@@ -16,22 +14,16 @@ object NBSettings {
     private val configDir = File(FabricLoader.getInstance().configDir.pathString + "/nobreak")
     private val configFile = File(configDir.path + "/config.dat")
 
+    val toolBlacklist = mutableListOf<Item>()
+
     var allowBreakage = false
     var notifyUser = true
 
     var diamondPlusToolsCanBreak = false
     var enchantedToolsCanBreak = false
 
-    val toolBlacklist = mutableListOf<Item>()
-
     fun isBlacklisted(itemStack: ItemStack): Boolean {
-        val material = (itemStack.item as ToolItem).material
-
-        return ((material == ToolMaterials.DIAMOND ||
-                material == ToolMaterials.NETHERITE ||
-                material.miningLevel >= 3 && !diamondPlusToolsCanBreak) ||
-                (itemStack.hasEnchantments() && !enchantedToolsCanBreak) ||
-                toolBlacklist.contains(itemStack.item))
+        return toolBlacklist.contains(itemStack.item)
     }
 
     private fun createFiles() {
@@ -63,26 +55,5 @@ object NBSettings {
         enchantedToolsCanBreak = r.readBoolean()
 
         toolBlacklist.addAll(r.readItemArr())
-    }
-
-    private fun DataOutputStream.writeItemArr(arr: Iterable<Item>) {
-        writeUTF(arr.joinToString(separator = "|") {
-            Registry.ITEM.getId(it).toString()
-        })
-    }
-
-    private fun DataInputStream.readItemArr(): MutableList<Item> {
-        val output = mutableListOf<Item>()
-        val items = readUTF().split("|")
-
-        for (it in items) {
-            if (!it.contains(":")) continue
-
-            val (namespace, path) = it.split(":")
-            val identity = Identifier(namespace, path)
-            output.add(Registry.ITEM.get(identity))
-        }
-
-        return output
     }
 }

@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "nichrosia.nobreak.mixin",
-  "client": [],
+  "client":  [],
   "injectors": {
     "defaultRequire": 1
   }
