@@ -32,20 +32,18 @@ object NBClothConfigIntegration {
         general.addEntry(
             entryBuilder.startBooleanToggle(
                 TranslatableText("setting.nobreak.do_break"),
-                NBSettings.doBreak
+                NBSettings.allowBreakage
             )
-                .setDefaultValue(false)
-                .setSaveConsumer { NBSettings.doBreak = it }
+                .setSaveConsumer { NBSettings.allowBreakage = it }
                 .build()
         )
 
         general.addEntry(
             entryBuilder.startBooleanToggle(
                 TranslatableText("setting.nobreak.do_feedback"),
-                NBSettings.doFeedback
+                NBSettings.notifyUser
             )
-                .setDefaultValue(true)
-                .setSaveConsumer { NBSettings.doFeedback = it }
+                .setSaveConsumer { NBSettings.notifyUser = it }
                 .build()
         )
 
@@ -54,7 +52,6 @@ object NBClothConfigIntegration {
                 TranslatableText("setting.nobreak.diamond+_tools_can_break"),
                 NBSettings.diamondPlusToolsCanBreak
             )
-                .setDefaultValue(true)
                 .setSaveConsumer { NBSettings.diamondPlusToolsCanBreak = it }
                 .build()
         )
@@ -64,7 +61,6 @@ object NBClothConfigIntegration {
                 TranslatableText("setting.nobreak.enchanted_tools_can_break"),
                 NBSettings.enchantedToolsCanBreak
             )
-                .setDefaultValue(true)
                 .setSaveConsumer { NBSettings.enchantedToolsCanBreak = it }
                 .build()
         )

@@ -9,7 +9,7 @@ object MessageUtil {
     private const val messageRepeatTime = 250L
 
     internal fun PlayerEntity.inform(message: Text) {
-        if (!NBSettings.doFeedback || System.currentTimeMillis() <= lastMessageSentAt + messageRepeatTime) return
+        if (!NBSettings.notifyUser || System.currentTimeMillis() <= lastMessageSentAt + messageRepeatTime) return
 
         lastMessageSentAt = System.currentTimeMillis()
 

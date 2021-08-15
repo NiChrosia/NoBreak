@@ -16,8 +16,8 @@ object NBSettings {
     private val configDir = File(FabricLoader.getInstance().configDir.pathString + "/nobreak")
     private val configFile = File(configDir.path + "/config.dat")
 
-    var doBreak = false
-    var doFeedback = true
+    var allowBreakage = false
+    var notifyUser = true
 
     var diamondPlusToolsCanBreak = false
     var enchantedToolsCanBreak = false
@@ -44,8 +44,8 @@ object NBSettings {
 
         val w = DataOutputStream(configFile.outputStream())
 
-        w.writeBoolean(doBreak)
-        w.writeBoolean(doFeedback)
+        w.writeBoolean(allowBreakage)
+        w.writeBoolean(notifyUser)
         w.writeBoolean(diamondPlusToolsCanBreak)
         w.writeBoolean(enchantedToolsCanBreak)
 
@@ -57,8 +57,8 @@ object NBSettings {
 
         val r = DataInputStream(configFile.inputStream())
 
-        doBreak = r.readBoolean()
-        doFeedback = r.readBoolean()
+        allowBreakage = r.readBoolean()
+        notifyUser = r.readBoolean()
         diamondPlusToolsCanBreak = r.readBoolean()
         enchantedToolsCanBreak = r.readBoolean()
 
@@ -72,23 +72,14 @@ object NBSettings {
     }
 
     private fun DataInputStream.readItemArr(): MutableList<Item> {
-        println("Reading item array.")
-
         val output = mutableListOf<Item>()
         val items = readUTF().split("|")
 
-        println("Raw items: $items")
-
         for (it in items) {
-            println("Raw item: $it")
             if (!it.contains(":")) continue
 
             val (namespace, path) = it.split(":")
             val identity = Identifier(namespace, path)
-
-            println("Proper item: $identity")
-
-            println("Adding item '${Registry.ITEM.get(identity)}' to output.")
             output.add(Registry.ITEM.get(identity))
         }
 

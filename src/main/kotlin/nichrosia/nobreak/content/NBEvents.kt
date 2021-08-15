@@ -11,7 +11,7 @@ import nichrosia.nobreak.util.MessageUtil.onOrOff
 object NBEvents : NBContent {
     override fun register() {
         PlayerBlockBreakEvents.BEFORE.register(PlayerBlockBreakEvents.Before { _, playerEntity, _, _, _ ->
-            if (NBSettings.doBreak) return@Before true
+            if (NBSettings.allowBreakage) return@Before true
 
             val stack = playerEntity.getStackInHand(playerEntity.activeHand)
 
@@ -29,12 +29,12 @@ object NBEvents : NBContent {
                 var hasToggled = false
 
                 while (NBKeyBinds.toggleToolBreakage.wasPressed() && !hasToggled) {
-                    NBSettings.doBreak = !NBSettings.doBreak
+                    NBSettings.allowBreakage = !NBSettings.allowBreakage
 
                     player.inform(
                         TranslatableText(
                             "text.nobreak.toggled_tool_breakage",
-                            onOrOff(NBSettings.doBreak)
+                            onOrOff(NBSettings.allowBreakage)
                         )
                     )
 
