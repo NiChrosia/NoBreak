@@ -1,14 +1,9 @@
 name: Gradle build
 
-on:
-  push:
-    branches: [ master, "1.17" ]
-  pull_request:
-    branches: [ master, "1.17" ]
+on: push
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -21,3 +16,8 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
+     - name: Upload built jar file
+     uses: actions/upload-artifact@v2
+     with:
+       name: ${{ github.event.repository.name }}
+       path: build/libs/nobreak-2.1.0.jar
