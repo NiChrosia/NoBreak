@@ -35,47 +35,47 @@ object NBEvents : Content {
             return@Before false
         }
 
-        AttackEntityCallback.EVENT.register Before@ { player, _, hand, victim, _ ->
-            val stack = player.getStackInHand(hand)
-
-            if (victim is TameableEntity) {
-                if (victim.ownerUuid == player.uuid) {
-                    if (NBSettings.allowAttackingOwnPets) {
-                        return@Before ActionResult.PASS
-                    } else {
-                        return@Before ActionResult.FAIL
-                    }
-                }
-            }
-
-            if (victim is Angerable) {
-                if (victim.angryAt != player.uuid) {
-                    if (NBSettings.allowAttackingNeutralMobs) {
-                        return@Before ActionResult.PASS
-                    } else {
-                        return@Before ActionResult.FAIL
-                    }
-                }
-            }
-
-            if (NBSettings.shouldSucceed(stack)) return@Before ActionResult.SUCCESS
-            if (NBSettings.breakingAllowedFor(stack, player)) return@Before ActionResult.SUCCESS
-
-            player.inform(TranslatableText("text.nobreak.tool_break_prevented", NBKeyBinds.toggleCurrentItemBlacklist.boundKeyLocalizedText))
-
-            return@Before ActionResult.FAIL
-        }
-
-        UseBlockCallback.EVENT.register Before@ { player, _, hand, _ ->
-            val stack = player.getStackInHand(hand)
-
-            if (NBSettings.shouldSucceed(stack)) return@Before ActionResult.SUCCESS
-            if (NBSettings.breakingAllowedFor(stack, player)) return@Before ActionResult.PASS
-
-            player.inform(TranslatableText("text.nobreak.tool_break_prevented", NBKeyBinds.toggleCurrentItemBlacklist.boundKeyLocalizedText))
-
-            return@Before ActionResult.FAIL
-        }
+//        AttackEntityCallback.EVENT.register Before@ { player, _, hand, victim, _ ->
+//            val stack = player.getStackInHand(hand)
+//
+//            if (victim is TameableEntity) {
+//                if (victim.ownerUuid == player.uuid) {
+//                    if (NBSettings.allowAttackingOwnPets) {
+//                        return@Before ActionResult.PASS
+//                    } else {
+//                        return@Before ActionResult.FAIL
+//                    }
+//                }
+//            }
+//
+//            if (victim is Angerable) {
+//                if (victim.angryAt != player.uuid) {
+//                    if (NBSettings.allowAttackingNeutralMobs) {
+//                        return@Before ActionResult.PASS
+//                    } else {
+//                        return@Before ActionResult.FAIL
+//                    }
+//                }
+//            }
+//
+//            if (NBSettings.shouldSucceed(stack)) return@Before ActionResult.SUCCESS
+//            if (NBSettings.breakingAllowedFor(stack, player)) return@Before ActionResult.SUCCESS
+//
+//            player.inform(TranslatableText("text.nobreak.tool_break_prevented", NBKeyBinds.toggleCurrentItemBlacklist.boundKeyLocalizedText))
+//
+//            return@Before ActionResult.FAIL
+//        }
+//
+//        UseBlockCallback.EVENT.register Before@ { player, _, hand, _ ->
+//            val stack = player.getStackInHand(hand)
+//
+//            if (NBSettings.shouldSucceed(stack)) return@Before ActionResult.SUCCESS
+//            if (NBSettings.breakingAllowedFor(stack, player)) return@Before ActionResult.PASS
+//
+//            player.inform(TranslatableText("text.nobreak.tool_break_prevented", NBKeyBinds.toggleCurrentItemBlacklist.boundKeyLocalizedText))
+//
+//            return@Before ActionResult.FAIL
+//        }
 
         ClientTickEvents.END_CLIENT_TICK.register {
             it.player?.let tick@{ player ->
