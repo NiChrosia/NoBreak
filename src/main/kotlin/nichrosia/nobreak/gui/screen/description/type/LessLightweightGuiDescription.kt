@@ -1,23 +1,22 @@
-package nichrosia.nobreak.gui.screen.description
+package nichrosia.nobreak.gui.screen.description.type
 
-import io.github.cottonmc.cotton.gui.GuiDescription
+import io.github.cottonmc.cotton.gui.client.CottonClientScreen
 import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription
 import io.github.cottonmc.cotton.gui.widget.WButton
 import io.github.cottonmc.cotton.gui.widget.WGridPanel
 import net.minecraft.client.MinecraftClient
 import net.minecraft.text.TranslatableText
-import nichrosia.nobreak.gui.screen.BlacklistScreen
 
 open class LessLightweightGuiDescription : LightweightGuiDescription() {
     open lateinit var backButton: WButton
 
-    open fun addBackButton(from: GuiDescription, root: WGridPanel, buttonKey: String = "button.nobreak.back") {
+    open fun addBackButton(root: WGridPanel, buttonKey: String = "button.nobreak.back", from: () -> CottonClientScreen) {
         backButton = WButton(TranslatableText(buttonKey)).apply {
             onClick = Runnable {
-                MinecraftClient.getInstance().setScreen(BlacklistScreen(from))
+                MinecraftClient.getInstance().setScreen(from())
             }
         }
 
-        root.add(backButton, 4, 10, 5, 1)
+        root.add(backButton, 4, 11, 5, 1)
     }
 }

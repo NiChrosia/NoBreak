@@ -6,7 +6,7 @@ import net.fabricmc.fabric.api.event.player.AttackEntityCallback
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.client.MinecraftClient
-import net.minecraft.item.ToolItem
+import net.minecraft.item.ShieldItem
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.ActionResult
 import nichrosia.nobreak.content.type.Content
@@ -17,20 +17,14 @@ import nichrosia.nobreak.util.MessageUtilities.onOrOff
 object NBEvents : Content {
     override fun load() {
         PlayerBlockBreakEvents.BEFORE.register Before@ { _, playerEntity, _, _, _ ->
-            if (NBSettings.allowBreakage) return@Before true
-
             val stack = playerEntity.getStackInHand(playerEntity.activeHand)
 
-            if (stack.item !is ToolItem ||
-                stack.maxDamage - stack.damage != 1 ||
-                !NBSettings.isBlacklisted(stack) ||
-                stack.isEmpty
-            ) return@Before true
+            if (NBSettings.breakingAllowedFor(stack, playerEntity)) return@Before true
 
             playerEntity.inform(
                 TranslatableText(
                     "text.nobreak.tool_break_prevented",
-                    NBKeyBinds.toggleToolBreakage.boundKeyLocalizedText
+                    NBKeyBinds.toggleCurrentItemBlacklist.boundKeyLocalizedText
                 )
             )
 
@@ -38,21 +32,12 @@ object NBEvents : Content {
         }
 
         AttackEntityCallback.EVENT.register Before@ { player, _, hand, _, _ ->
-            println("attempting to stop tool breakage")
-
             val stack = player.getStackInHand(hand)
 
-            if (NBSettings.allowBreakage || stack.isEmpty) return@Before ActionResult.PASS
+            if (stack.isEmpty) return@Before ActionResult.PASS
+            if (NBSettings.breakingAllowedFor(stack, player)) return@Before ActionResult.SUCCESS
 
-            println("allow breakage is disabled")
-            println("damage: ${stack.maxDamage - stack.damage}/${stack.maxDamage}")
-
-            if (stack.maxDamage - stack.damage != 1 ||
-                !NBSettings.isBlacklisted(stack)) return@Before ActionResult.SUCCESS
-
-            println("item is at 1 durability and not blacklisted")
-
-            player.inform(TranslatableText("text.nobreak.tool_break_prevented", NBKeyBinds.toggleToolBreakage.boundKeyLocalizedText))
+            player.inform(TranslatableText("text.nobreak.tool_break_prevented", NBKeyBinds.toggleCurrentItemBlacklist.boundKeyLocalizedText))
 
             return@Before ActionResult.FAIL
         }
@@ -60,63 +45,40 @@ object NBEvents : Content {
         UseBlockCallback.EVENT.register Before@ { player, _, hand, _ ->
             val stack = player.getStackInHand(hand)
 
-            println("attempting to stop tool breakage")
+            if (stack.isEmpty) return@Before ActionResult.PASS
+            if (NBSettings.breakingAllowedFor(stack, player)) return@Before ActionResult.PASS
 
-            if (NBSettings.allowBreakage || stack.isEmpty) return@Before ActionResult.PASS
-
-            println("allow breakage is disabled")
-            println("damage: ${stack.maxDamage - stack.damage}/${stack.maxDamage}")
-
-            if (stack.maxDamage - stack.damage != 1 ||
-                !NBSettings.isBlacklisted(stack)) return@Before ActionResult.PASS
-
-            println("item is at 1 durability and not blacklisted")
-
-            player.inform(TranslatableText("text.nobreak.tool_break_prevented", NBKeyBinds.toggleToolBreakage.boundKeyLocalizedText))
+            player.inform(TranslatableText("text.nobreak.tool_break_prevented", NBKeyBinds.toggleCurrentItemBlacklist.boundKeyLocalizedText))
 
             return@Before ActionResult.FAIL
         }
 
         ClientTickEvents.END_CLIENT_TICK.register {
-            it.player?.let { player ->
+            it.player?.let tick@{ player ->
                 run {
-                    var hasToggled = false
-
-                    while(NBKeyBinds.toggleToolBreakage.wasPressed() && !hasToggled) {
-                        NBSettings.allowBreakage = !NBSettings.allowBreakage
-
-                        player.inform(
-                            TranslatableText(
-                                "text.nobreak.toggled_tool_breakage",
-                                onOrOff(NBSettings.allowBreakage)
-                            )
-                        )
-
-                        hasToggled = true
-                    }
-                }
-
-                run {
-                    var hasToggled = false
-
-                    while(NBKeyBinds.toggleCurrentItemBlacklist.wasPressed() && !hasToggled) {
+                    if (NBKeyBinds.toggleCurrentItemBlacklist.wasPressed()) {
                         player.mainHandStack.item.let { item ->
-                            if (NBSettings.toolBlacklist.contains(item)) {
-                                NBSettings.toolBlacklist.remove(item)
+                            if (!item.isDamageable) return@tick
+
+                            if (item is ShieldItem) {
+                                player.inform(TranslatableText("text.nobreak.shields_not_supported"))
+
+                                return@tick
+                            }
+
+                            val currentBlacklist = NBSettings.blacklist.copy()
+
+                            NBSettings.blacklist = if (NBSettings.blacklist.items(player).contains(item)) {
+                                 NBSettings.blacklist.copy(items = { currentBlacklist.items(player) - item })
                             } else {
-                                NBSettings.toolBlacklist.add(item)
+                                NBSettings.blacklist.copy(items = { currentBlacklist.items(player) + item })
                             }
                         }
 
-                        player.inform(
-                            TranslatableText(
-                                "text.nobreak.toggled_item_blacklist",
-                                onOrOff(NBSettings.toolBlacklist.contains(player.mainHandStack.item)),
-                                player.mainHandStack.item.name
-                            )
-                        )
-
-                        hasToggled = true
+                        player.inform(TranslatableText(
+                            "text.nobreak.toggled_item_blacklist",
+                            onOrOff(NBSettings.blacklist.items(player).contains(player.mainHandStack.item)),
+                        player.mainHandStack.item.name))
                     }
                 }
             }

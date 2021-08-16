@@ -1,28 +1,29 @@
 package nichrosia.nobreak.content
 
 import net.fabricmc.loader.api.FabricLoader
-import net.minecraft.item.Item
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
+import net.minecraft.util.Identifier
+import net.minecraft.util.registry.Registry
 import nichrosia.nobreak.gui.screen.description.PresetScreenDescription
-import nichrosia.nobreak.util.DataStreams
 import nichrosia.nobreak.util.DataStreams.bool
-import nichrosia.nobreak.util.DataStreams.readItemArr
-import nichrosia.nobreak.util.DataStreams.writeItemArr
-import java.io.*
+import nichrosia.nobreak.util.DataStreams.str
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.io.File
 import kotlin.io.path.pathString
 
 object NBSettings {
     private val configDir = File(FabricLoader.getInstance().configDir.pathString + "/nobreak")
     private val configFile = File(configDir.path + "/config.dat")
 
-    val toolBlacklist = mutableListOf<Item>()
-    lateinit var blacklist: PresetScreenDescription.BlacklistPreset
-
-    var allowBreakage = false
+    var blacklist = PresetScreenDescription.BlacklistPreset.empty
     var notifyUser = true
 
-    fun isBlacklisted(itemStack: ItemStack): Boolean {
-        return toolBlacklist.contains(itemStack.item)
+    fun breakingAllowedFor(itemStack: ItemStack, player: PlayerEntity): Boolean {
+        return (blacklist.items(player).contains(itemStack.item) ||
+                blacklist.isBreakingAllowed(itemStack)) &&
+                if (itemStack.hasEnchantments()) blacklist.isEnchanted(itemStack) else true
     }
 
     private fun createFiles() {
@@ -35,10 +36,8 @@ object NBSettings {
 
         val write = DataOutputStream(configFile.outputStream())
 
-        write.bool(allowBreakage)
         write.bool(notifyUser)
-
-        write.writeItemArr(toolBlacklist)
+        write.str(blacklist.items(null).joinToString("|") { Registry.ITEM.getId(it).toString() })
     }
 
     fun load() {
@@ -46,9 +45,7 @@ object NBSettings {
 
         val read = DataInputStream(configFile.inputStream())
 
-        allowBreakage = read.bool()
         notifyUser = read.bool()
-
-        toolBlacklist.addAll(read.readItemArr())
+        blacklist.addItems(read.str().split("|").map { Registry.ITEM.get(Identifier(it)) })
     }
 }

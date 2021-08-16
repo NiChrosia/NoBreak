@@ -3,7 +3,7 @@
   "id": "nobreak",
   "version": "${version}",
   "name": "No Break",
-  "description": "Forcibly disables usage of a tool when it is at low durability.",
+  "description": "Forcibly disables usage of a tool when it is at low durability. Additional info: the blacklist allows items to break, rather than preventing it, as preventing is enabled by default. Preventing shields from breaking also does not function due to the handling for them being server-side.",
   "authors": [
     "NiChrosia"
   ],

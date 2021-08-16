@@ -30,12 +30,6 @@ object NBClothConfigSettings {
         val entryBuilder = builder.entryBuilder()
 
         general.addEntry(entryBuilder.startBooleanToggle(
-            TranslatableText("setting.nobreak.do_break"),
-            NBSettings.allowBreakage)
-            .setSaveConsumer { NBSettings.allowBreakage = it }
-            .build())
-
-        general.addEntry(entryBuilder.startBooleanToggle(
             TranslatableText("setting.nobreak.do_feedback"),
             NBSettings.notifyUser)
             .setSaveConsumer { NBSettings.notifyUser = it }

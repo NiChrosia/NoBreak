@@ -5,6 +5,7 @@ import io.github.cottonmc.cotton.gui.widget.*
 import io.github.cottonmc.cotton.gui.widget.data.Axis
 import io.github.cottonmc.cotton.gui.widget.data.Insets
 import net.minecraft.client.MinecraftClient
+import net.minecraft.enchantment.Enchantments
 import net.minecraft.item.ItemStack
 import net.minecraft.text.TranslatableText
 import nichrosia.nobreak.content.NBSettings
@@ -13,6 +14,7 @@ import nichrosia.nobreak.gui.screen.PresetScreen
 @Suppress("MemberVisibilityCanBePrivate", "LeakingThis")
 open class BlacklistScreenDescription : LightweightGuiDescription() {
     open val elementsPerRow = 5
+    open val rowsPerColumn = 10
     open val blacklistedItemBox: WBoxOpen
 
     init {
@@ -30,7 +32,7 @@ open class BlacklistScreenDescription : LightweightGuiDescription() {
 
         val clearButton = WButton(TranslatableText("button.nobreak.reset_blacklist")).apply {
             onClick = Runnable {
-                NBSettings.toolBlacklist.clear()
+                NBSettings.blacklist = PresetScreenDescription.BlacklistPreset.empty
                 blacklistedItemBox.clearChildren()
 
                 populateBlacklistBox()
@@ -41,7 +43,7 @@ open class BlacklistScreenDescription : LightweightGuiDescription() {
 
         val presetButton = WButton(TranslatableText("button.nobreak.open_presets")).apply {
             onClick = Runnable {
-                MinecraftClient.getInstance().setScreen(PresetScreen(this@BlacklistScreenDescription))
+                MinecraftClient.getInstance().setScreen(PresetScreen())
             }
         }
 
@@ -51,17 +53,25 @@ open class BlacklistScreenDescription : LightweightGuiDescription() {
     open fun populateBlacklistBox() {
         var rowBox = WBox(Axis.HORIZONTAL)
 
-        NBSettings.toolBlacklist.forEachIndexed { index, item ->
-            rowBox.add(WItem(ItemStack(item)))
+        run forEach@{
+            NBSettings.blacklist.items(MinecraftClient.getInstance().player).forEachIndexed { index, item ->
+                val stack = ItemStack(item)
+                if (NBSettings.blacklist.isEnchanted(stack)) stack.addEnchantment(Enchantments.MENDING, 1)
 
-            if ((index + 1) % elementsPerRow == 0) {
-                blacklistedItemBox.add(rowBox)
+                rowBox.add(WItem(stack))
 
-                rowBox = WBox(Axis.HORIZONTAL)
+                if ((index + 1) % elementsPerRow == 0) {
+                    blacklistedItemBox.add(rowBox)
+
+                    rowBox = WBox(Axis.HORIZONTAL)
+
+                    val row = (index + 1) / elementsPerRow
+                    if (row >= rowsPerColumn) return@forEach
+                }
             }
         }
 
-        if (NBSettings.toolBlacklist.size % elementsPerRow != 0) blacklistedItemBox.add(rowBox)
+        if (NBSettings.blacklist.items(MinecraftClient.getInstance().player).size % elementsPerRow != 0) blacklistedItemBox.add(rowBox)
     }
 
     open class WBoxOpen(axis: Axis) : WBox(axis) {
