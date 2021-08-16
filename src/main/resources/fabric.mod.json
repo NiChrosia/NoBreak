@@ -24,7 +24,7 @@
     "modmenu": [
       {
         "adapter": "kotlin",
-        "value": "nichrosia.nobreak.integration.NBModMenuIntegration"
+        "value": "nichrosia.nobreak.ext.NBModMenuSettings"
       }
     ]
   },
@@ -33,6 +33,7 @@
     "fabric": "*",
     "minecraft": "1.17.x",
     "fabric-key-binding-api-v1": "*",
-    "fabric-language-kotlin":  "*"
+    "fabric-language-kotlin":  "*",
+    "libgui": "*"
   }
 }

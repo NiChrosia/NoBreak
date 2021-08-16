@@ -10,9 +10,14 @@
 
   "setting.nobreak.do_break": "Allow tool breaking at one durability",
   "setting.nobreak.do_feedback": "Notify block breaking prevention",
-  "setting.nobreak.diamond+_tools_can_break": "Allow diamond tools or better to break",
-  "setting.nobreak.enchanted_tools_can_break": "Allow enchanted tools to break",
 
   "key.nobreak.toggle_tool_breakage": "Toggle tool breakage",
-  "key.nobreak.toggle_current_item_blacklist": "Toggle blacklist for current item"
+  "key.nobreak.toggle_current_item_blacklist": "Toggle blacklist for current item",
+  "key.nobreak.open_blacklist_screen": "Open Blacklist Screen",
+
+  "button.nobreak.reset_blacklist": "Reset Blacklist",
+  "button.nobreak.open_presets": "Open Presets",
+
+  "blacklist_preset.diamond_plus": "Diamond+",
+  "blacklist_preset.enchanted": "Enchanted"
 }

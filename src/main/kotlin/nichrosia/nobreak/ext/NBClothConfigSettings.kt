@@ -40,17 +40,5 @@ object NBClothConfigSettings {
             NBSettings.notifyUser)
             .setSaveConsumer { NBSettings.notifyUser = it }
             .build())
-
-        general.addEntry(entryBuilder.startBooleanToggle(
-            TranslatableText("setting.nobreak.diamond+_tools_can_break"),
-            NBSettings.diamondPlusToolsCanBreak)
-            .setSaveConsumer { NBSettings.diamondPlusToolsCanBreak = it }
-            .build())
-
-        general.addEntry(entryBuilder.startBooleanToggle(
-            TranslatableText("setting.nobreak.enchanted_tools_can_break"),
-            NBSettings.enchantedToolsCanBreak)
-            .setSaveConsumer { NBSettings.enchantedToolsCanBreak = it }
-            .build())
     }
 }

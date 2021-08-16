@@ -3,11 +3,12 @@ package nichrosia.nobreak.content
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import nichrosia.nobreak.gui.screen.description.PresetScreenDescription
+import nichrosia.nobreak.util.DataStreams
+import nichrosia.nobreak.util.DataStreams.bool
 import nichrosia.nobreak.util.DataStreams.readItemArr
 import nichrosia.nobreak.util.DataStreams.writeItemArr
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import java.io.File
+import java.io.*
 import kotlin.io.path.pathString
 
 object NBSettings {
@@ -15,12 +16,10 @@ object NBSettings {
     private val configFile = File(configDir.path + "/config.dat")
 
     val toolBlacklist = mutableListOf<Item>()
+    lateinit var blacklist: PresetScreenDescription.BlacklistPreset
 
     var allowBreakage = false
     var notifyUser = true
-
-    var diamondPlusToolsCanBreak = false
-    var enchantedToolsCanBreak = false
 
     fun isBlacklisted(itemStack: ItemStack): Boolean {
         return toolBlacklist.contains(itemStack.item)
@@ -34,26 +33,22 @@ object NBSettings {
     fun save() {
         if (!configFile.exists()) createFiles()
 
-        val w = DataOutputStream(configFile.outputStream())
+        val write = DataOutputStream(configFile.outputStream())
 
-        w.writeBoolean(allowBreakage)
-        w.writeBoolean(notifyUser)
-        w.writeBoolean(diamondPlusToolsCanBreak)
-        w.writeBoolean(enchantedToolsCanBreak)
+        write.bool(allowBreakage)
+        write.bool(notifyUser)
 
-        w.writeItemArr(toolBlacklist)
+        write.writeItemArr(toolBlacklist)
     }
 
     fun load() {
         if (!configFile.exists()) return
 
-        val r = DataInputStream(configFile.inputStream())
+        val read = DataInputStream(configFile.inputStream())
 
-        allowBreakage = r.readBoolean()
-        notifyUser = r.readBoolean()
-        diamondPlusToolsCanBreak = r.readBoolean()
-        enchantedToolsCanBreak = r.readBoolean()
+        allowBreakage = read.bool()
+        notifyUser = read.bool()
 
-        toolBlacklist.addAll(r.readItemArr())
+        toolBlacklist.addAll(read.readItemArr())
     }
 }

@@ -4,7 +4,7 @@ import net.fabricmc.api.ClientModInitializer
 import nichrosia.nobreak.content.*
 import nichrosia.nobreak.content.type.Content
 
-@Suppress("MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 object NoBreak : ClientModInitializer {
     internal val content = arrayOf(
         NBKeyBinds,

@@ -8,14 +8,14 @@ import java.io.DataOutputStream
 
 object DataStreams {
     fun DataOutputStream.writeItemArr(arr: Iterable<Item>) {
-        writeUTF(arr.joinToString(separator = "|") {
+        str(arr.joinToString(separator = "|") {
             Registry.ITEM.getId(it).toString()
         })
     }
 
     fun DataInputStream.readItemArr(): MutableList<Item> {
         val output = mutableListOf<Item>()
-        val items = readUTF().split("|")
+        val items = str().split("|")
 
         for (it in items) {
             if (!it.contains(":")) continue
@@ -27,4 +27,10 @@ object DataStreams {
 
         return output
     }
+
+    fun DataOutputStream.bool(value: Boolean) = writeBoolean(value)
+    fun DataOutputStream.str(value: String) = writeUTF(value)
+
+    fun DataInputStream.bool() = readBoolean()
+    fun DataInputStream.str(): String = readUTF()
 }

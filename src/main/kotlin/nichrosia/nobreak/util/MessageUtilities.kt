@@ -16,5 +16,5 @@ object MessageUtilities {
         sendMessage(message, true)
     }
 
-    fun onOrOff(condition: Boolean) = if (condition) "on" else "off"
+    fun onOrOff(condition: Boolean, on: String = "on", off: String = "off") = if (condition) on else off
 }
