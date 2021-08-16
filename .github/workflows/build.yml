@@ -16,8 +16,8 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
-     - name: Upload built jar file
-     uses: actions/upload-artifact@v2
-     with:
-       name: ${{ github.event.repository.name }}
-       path: build/libs/nobreak-2.1.0.jar
+    - name: Upload built jar file
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ github.event.repository.name }}
+        path: build/libs/nobreak-2.1.0.jar
