@@ -9,8 +9,9 @@
   "category.nobreak.general": "General",
   "category.nobreak.keybindings": "NoBreak",
 
-  "setting.nobreak.do_break": "Allow tool breaking at one durability",
   "setting.nobreak.do_feedback": "Notify block breaking prevention",
+  "setting.nobreak.allow_attacking_own_pets": "Allow attacking own pets",
+  "setting.nobreak.allow_attacking_neutral_mobs": "Allow attacking neutral until provoked mobs",
 
   "key.nobreak.toggle_current_item_blacklist": "Toggle blacklist for current item",
   "key.nobreak.open_blacklist_screen": "Open Blacklist Screen",

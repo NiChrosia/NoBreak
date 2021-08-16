@@ -34,5 +34,17 @@ object NBClothConfigSettings {
             NBSettings.notifyUser)
             .setSaveConsumer { NBSettings.notifyUser = it }
             .build())
+
+        general.addEntry(entryBuilder.startBooleanToggle(
+            TranslatableText("setting.nobreak.allow_attacking_own_pets"),
+            NBSettings.allowAttackingOwnPets)
+            .setSaveConsumer { NBSettings.allowAttackingOwnPets = it }
+            .build())
+
+        general.addEntry(entryBuilder.startBooleanToggle(
+            TranslatableText("setting.nobreak.allow_attacking_neutral_mobs"),
+            NBSettings.allowAttackingNeutralMobs)
+            .setSaveConsumer { NBSettings.allowAttackingNeutralMobs = it }
+            .build())
     }
 }

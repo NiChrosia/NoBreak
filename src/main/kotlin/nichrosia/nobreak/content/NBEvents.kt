@@ -6,7 +6,8 @@ import net.fabricmc.fabric.api.event.player.AttackEntityCallback
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
 import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.client.MinecraftClient
-import net.minecraft.item.ItemStack
+import net.minecraft.entity.mob.Angerable
+import net.minecraft.entity.passive.TameableEntity
 import net.minecraft.item.ShieldItem
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.ActionResult
@@ -14,6 +15,7 @@ import nichrosia.nobreak.content.type.Content
 import nichrosia.nobreak.gui.screen.BlacklistScreen
 import nichrosia.nobreak.util.MessageUtilities.inform
 import nichrosia.nobreak.util.MessageUtilities.onOrOff
+import kotlin.math.absoluteValue
 
 object NBEvents : Content {
     override fun load() {
@@ -33,8 +35,28 @@ object NBEvents : Content {
             return@Before false
         }
 
-        AttackEntityCallback.EVENT.register Before@ { player, _, hand, _, _ ->
+        AttackEntityCallback.EVENT.register Before@ { player, _, hand, victim, _ ->
             val stack = player.getStackInHand(hand)
+
+            if (victim is TameableEntity) {
+                if (victim.ownerUuid == player.uuid) {
+                    if (NBSettings.allowAttackingOwnPets) {
+                        return@Before ActionResult.PASS
+                    } else {
+                        return@Before ActionResult.FAIL
+                    }
+                }
+            }
+
+            if (victim is Angerable) {
+                if (victim.angryAt != player.uuid) {
+                    if (NBSettings.allowAttackingNeutralMobs) {
+                        return@Before ActionResult.PASS
+                    } else {
+                        return@Before ActionResult.FAIL
+                    }
+                }
+            }
 
             if (NBSettings.shouldSucceed(stack)) return@Before ActionResult.SUCCESS
             if (NBSettings.breakingAllowedFor(stack, player)) return@Before ActionResult.SUCCESS

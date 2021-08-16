@@ -8,27 +8,25 @@ import net.minecraft.util.registry.Registry
 import nichrosia.nobreak.gui.screen.description.PresetScreenDescription
 import nichrosia.nobreak.util.DataStreams.bool
 import nichrosia.nobreak.util.DataStreams.str
+import org.apache.logging.log4j.LogManager
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.io.EOFException
 import java.io.File
 import kotlin.io.path.pathString
 
 object NBSettings {
     private val configDir = File(FabricLoader.getInstance().configDir.pathString + "/nobreak")
     private val configFile = File(configDir.path + "/config.dat")
+    private val log = LogManager.getLogger("NoBreak")
 
     var blacklist = PresetScreenDescription.BlacklistPreset.empty
     var notifyUser = true
 
-    fun breakingAllowedFor(itemStack: ItemStack, player: PlayerEntity): Boolean {
-        println("Item blacklist contains item: ${blacklist.items(player).contains(itemStack.item)}")
-        println("Breaking allowed for item stack: ${blacklist.isBreakingAllowed(itemStack)}")
-        println("ItemStack not damageable: ${!itemStack.isDamageable}")
-        println("Enchantment predicate: ${(if (itemStack.hasEnchantments()) blacklist.isEnchanted(itemStack) else false)}")
-        println("Total: ${blacklist.items(player).contains(itemStack.item)} | ${blacklist.isBreakingAllowed(itemStack)} | ${!itemStack.isDamageable} | ${(if (itemStack.hasEnchantments()) blacklist.isEnchanted(itemStack) else false)} = ${(blacklist.items(player).contains(itemStack.item) ||
-                blacklist.isBreakingAllowed(itemStack)) ||
-                (if (itemStack.hasEnchantments()) blacklist.isEnchanted(itemStack) else false)}\n\n")
+    var allowAttackingOwnPets = true
+    var allowAttackingNeutralMobs = true
 
+    fun breakingAllowedFor(itemStack: ItemStack, player: PlayerEntity): Boolean {
         return (blacklist.items(player).contains(itemStack.item) ||
                 blacklist.isBreakingAllowed(itemStack)) ||
                 !itemStack.isDamageable ||
@@ -37,11 +35,6 @@ object NBSettings {
     }
 
     fun shouldSucceed(stack: ItemStack): Boolean {
-        println("Stack empty: ${stack.isEmpty}")
-        println("Stack damageable: ${stack.isDamageable}")
-        println("Stack damage: ${stack.maxDamage - stack.damage}/${stack.maxDamage}")
-        println("Total: ${stack.isEmpty} | ${stack.isDamageable} & ${stack.maxDamage - stack.damage != 1} = ${stack.isEmpty || stack.isDamageable && ((stack.maxDamage - stack.damage) != 1)}\n")
-
         return stack.isEmpty || stack.isDamageable && ((stack.maxDamage - stack.damage) != 1)
     }
 
@@ -56,15 +49,23 @@ object NBSettings {
         val write = DataOutputStream(configFile.outputStream())
 
         write.bool(notifyUser)
+        write.bool(allowAttackingOwnPets)
+        write.bool(allowAttackingNeutralMobs)
         write.str(blacklist.items(null).joinToString("|") { Registry.ITEM.getId(it).toString() })
     }
 
     fun load() {
         if (!configFile.exists()) return
 
-        val read = DataInputStream(configFile.inputStream())
+        try {
+            val read = DataInputStream(configFile.inputStream())
 
-        notifyUser = read.bool()
-        blacklist.addItems(read.str().split("|").map { Registry.ITEM.get(Identifier(it)) })
+            notifyUser = read.bool()
+            allowAttackingOwnPets = read.bool()
+            allowAttackingNeutralMobs = read.bool()
+            blacklist.addItems(read.str().split("|").map { Registry.ITEM.get(Identifier(it)) })
+        } catch(e: EOFException) {
+            log.warn("Invalid config, setting values to default.")
+        }
     }
 }
