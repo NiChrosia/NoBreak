@@ -11,7 +11,6 @@ import nichrosia.nobreak.util.DataStreams.str
 import org.apache.logging.log4j.LogManager
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import java.io.EOFException
 import java.io.File
 import kotlin.io.path.pathString
 import kotlin.properties.Delegates
@@ -109,7 +108,7 @@ object NBSettings {
 
             customBlacklist.addItems(rawCustomBlacklist.split("|").map { Registry.ITEM.get(Identifier(it)) })
             blacklists.addAll(PresetScreenDescription.BlacklistPreset.types.filter { rawBlacklists.split("|").contains(it.translationKey) })
-        } catch(e: EOFException) {
+        } catch(e: Exception) {
             log.warn("Invalid config, setting values to default.")
         }
     }
