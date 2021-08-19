@@ -35,7 +35,7 @@ open class PresetScreenDescription : LessLightweightGuiDescription() {
                 rowBox.apply {
                     val button = WButton(ItemIcon(it.icon), TranslatableText(it.translationKey)).apply {
                         onClick = Runnable {
-                            NBSettings.blacklist = it
+                            if (!NBSettings.blacklists.contains(it)) NBSettings.blacklists.add(it)
                         }
                     }
 
@@ -56,10 +56,7 @@ open class PresetScreenDescription : LessLightweightGuiDescription() {
     }
 
     open fun generatePresets(): Array<BlacklistPreset> {
-        return arrayOf(
-            BlacklistPreset.empty,
-            BlacklistPreset.ironMinus
-        )
+        return BlacklistPreset.types.toTypedArray()
     }
 
     @Suppress("MemberVisibilityCanBePrivate", "NestedLambdaShadowedImplicitParameter")
@@ -70,20 +67,58 @@ open class PresetScreenDescription : LessLightweightGuiDescription() {
         var items: (PlayerEntity?) -> List<Item> = { listOf() },
         val isEnchanted: (ItemStack) -> Boolean = { false }
     ) {
-        fun addItems(items: Iterable<Item>) {
+        init {
+            types += this
+        }
+
+        fun addItems(items: Iterable<Item>): BlacklistPreset {
             val previousItems = items(null)
 
             this.items = { (previousItems + items) }
+
+            return this
         }
 
+        fun addItem(item: Item) = addItems(listOf(item))
+
+        fun <T> MutableList<T>.removeAndReturn(item: T): MutableList<T> {
+            remove(item)
+
+            return this
+        }
+
+        fun removeItem(item: Item): BlacklistPreset {
+            val previousItems = items(null)
+
+            items = { previousItems.toMutableList().removeAndReturn(item) }
+
+            return this
+        }
+
+        @Suppress("unused")
         companion object {
-            val PlayerInventory.all: List<ItemStack>
-                get() = main + armor + offHand
+            val types = mutableListOf<BlacklistPreset>()
 
             val empty = BlacklistPreset("blacklist_preset.empty", ItemStack.EMPTY, { false }, { listOf() }) { false }
 
-            val ironMinus = BlacklistPreset("blacklist_preset.iron_minus", ItemStack(Items.IRON_PICKAXE), items = {
-                Registry.ITEM.filter { (it as? ToolItem)?.let { it.material.miningLevel <= 2 } == true }
+            val wood = BlacklistPreset("blacklist_preset.wood", ItemStack(Items.WOODEN_PICKAXE), items = {
+                Registry.ITEM.filter { (it as? ToolItem)?.let { it.material.miningLevel == 0 } == true }
+            })
+
+            val stone = BlacklistPreset("blacklist_preset.stone", ItemStack(Items.STONE_PICKAXE), items = {
+                Registry.ITEM.filter { (it as? ToolItem)?.let { it.material.miningLevel == 1 } == true }
+            })
+
+            val iron = BlacklistPreset("blacklist_preset.iron", ItemStack(Items.IRON_PICKAXE), items = {
+                Registry.ITEM.filter { (it as? ToolItem)?.let { it.material.miningLevel == 2 } == true }
+            })
+
+            val diamond = BlacklistPreset("blacklist_preset.diamond", ItemStack(Items.DIAMOND_PICKAXE), items = {
+                Registry.ITEM.filter { (it as? ToolItem)?.let { it.material.miningLevel == 3 } == true }
+            })
+
+            val throwable = BlacklistPreset("blacklist_preset.throwable", ItemStack(Items.ARROW), items = {
+                Registry.ITEM.filterIsInstance<RangedWeaponItem>() + Registry.ITEM.filterIsInstance<TridentItem>()
             })
         }
     }

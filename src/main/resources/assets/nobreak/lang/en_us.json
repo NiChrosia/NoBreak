@@ -10,7 +10,7 @@
   "category.nobreak.keybindings": "NoBreak",
 
   "setting.nobreak.do_feedback": "Notify block breaking prevention",
-  "setting.nobreak.allow_attacking_own_pets": "Allow attacking own pets",
+  "setting.nobreak.allow_attacking_own_pets": "Allow attacking own pets (overrides breaking)",
   "setting.nobreak.allow_attacking_neutral_mobs": "Allow attacking neutral until provoked mobs",
 
   "key.nobreak.toggle_current_item_blacklist": "Toggle blacklist for current item",
@@ -23,6 +23,18 @@
   "blacklist_preset.empty": "Empty",
   "blacklist_preset.empty.desc": "",
 
-  "blacklist_preset.iron_minus": "Iron-",
-  "blacklist_preset.iron_minus.desc": "Unenchanted iron and below"
+  "blacklist_preset.wood": "Wooden",
+  "blacklist_preset.wood.desc": "Wooden tools",
+
+  "blacklist_preset.stone": "Stone",
+  "blacklist_preset.stone.desc": "Stone tools",
+
+  "blacklist_preset.iron": "Iron",
+  "blacklist_preset.iron.desc": "Iron tools",
+
+  "blacklist_preset.diamond": "Diamond",
+  "blacklist_preset.diamond.desc": "Diamond tools",
+
+  "blacklist_preset.throwable": "Throwables",
+  "blacklist_preset.throwable.desc": "Bows, tridents, etc"
 }

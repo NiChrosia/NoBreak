@@ -2,21 +2,16 @@ package nichrosia.nobreak.content
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
-import net.fabricmc.fabric.api.event.player.AttackEntityCallback
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
-import net.fabricmc.fabric.api.event.player.UseBlockCallback
 import net.minecraft.client.MinecraftClient
-import net.minecraft.entity.mob.Angerable
-import net.minecraft.entity.passive.TameableEntity
 import net.minecraft.item.ShieldItem
 import net.minecraft.text.TranslatableText
-import net.minecraft.util.ActionResult
 import nichrosia.nobreak.content.type.Content
 import nichrosia.nobreak.gui.screen.BlacklistScreen
 import nichrosia.nobreak.util.MessageUtilities.inform
 import nichrosia.nobreak.util.MessageUtilities.onOrOff
-import kotlin.math.absoluteValue
 
+@Suppress("NestedLambdaShadowedImplicitParameter", "MemberVisibilityCanBePrivate")
 object NBEvents : Content {
     override fun load() {
         PlayerBlockBreakEvents.BEFORE.register Before@ { _, playerEntity, _, _, _ ->
@@ -35,6 +30,7 @@ object NBEvents : Content {
             return@Before false
         }
 
+        /* (Discontinued.)
         AttackEntityCallback.EVENT.register Before@ { player, _, hand, victim, _ ->
             val stack = player.getStackInHand(hand)
 
@@ -43,7 +39,13 @@ object NBEvents : Content {
                     if (NBSettings.allowAttackingOwnPets) {
                         return@Before ActionResult.PASS
                     } else {
-                        return@Before ActionResult.FAIL
+                        if (NBSettings.shouldSucceed(stack)) {
+                            return@Before ActionResult.PASS
+                        } else {
+                            if (NBSettings.breakingAllowedFor(stack, player)) {
+                                return@Before ActionResult.SUCCESS
+                            }
+                        }
                     }
                 }
             }
@@ -53,12 +55,18 @@ object NBEvents : Content {
                     if (NBSettings.allowAttackingNeutralMobs) {
                         return@Before ActionResult.PASS
                     } else {
-                        return@Before ActionResult.FAIL
+                        if (NBSettings.shouldSucceed(stack)) {
+                            return@Before ActionResult.PASS
+                        } else {
+                            if (NBSettings.breakingAllowedFor(stack, player)) {
+                                return@Before ActionResult.SUCCESS
+                            }
+                        }
                     }
                 }
             }
 
-            if (NBSettings.shouldSucceed(stack)) return@Before ActionResult.SUCCESS
+            if (NBSettings.shouldSucceed(stack)) return@Before ActionResult.PASS
             if (NBSettings.breakingAllowedFor(stack, player)) return@Before ActionResult.SUCCESS
 
             player.inform(TranslatableText("text.nobreak.tool_break_prevented", NBKeyBinds.toggleCurrentItemBlacklist.boundKeyLocalizedText))
@@ -69,13 +77,13 @@ object NBEvents : Content {
         UseBlockCallback.EVENT.register Before@ { player, _, hand, _ ->
             val stack = player.getStackInHand(hand)
 
-            if (NBSettings.shouldSucceed(stack)) return@Before ActionResult.SUCCESS
+            if (NBSettings.shouldSucceed(stack)) return@Before ActionResult.PASS
             if (NBSettings.breakingAllowedFor(stack, player)) return@Before ActionResult.PASS
 
             player.inform(TranslatableText("text.nobreak.tool_break_prevented", NBKeyBinds.toggleCurrentItemBlacklist.boundKeyLocalizedText))
 
             return@Before ActionResult.FAIL
-        }
+        } */
 
         ClientTickEvents.END_CLIENT_TICK.register {
             it.player?.let tick@{ player ->
@@ -89,20 +97,24 @@ object NBEvents : Content {
                             return@tick
                         }
 
-                        val currentBlacklist = NBSettings.blacklist.copy()
-
-                        NBSettings.blacklist = if (NBSettings.blacklist.items(player).contains(item)) {
-                             NBSettings.blacklist.copy(items = { currentBlacklist.items(player) - item })
+                        if (NBSettings.customBlacklist.items(player).contains(item)) {
+                            NBSettings.customBlacklist.removeItem(item)
                         } else {
-                            NBSettings.blacklist.copy(items = { currentBlacklist.items(player) + item })
+                            NBSettings.customBlacklist.addItem(item)
                         }
                     }
 
                     player.inform(TranslatableText(
                         "text.nobreak.toggled_item_blacklist",
-                        onOrOff(NBSettings.blacklist.items(player).contains(player.mainHandStack.item)),
+                        onOrOff(NBSettings.customBlacklist.items(player).contains(player.mainHandStack.item)),
                     player.mainHandStack.item.name))
                 }
+
+                /* Location for adding support for disabling armor, if that were to happen in the future
+
+                [...]
+
+                */
             }
 
             if (NBKeyBinds.openBlacklistScreen.wasPressed()) {

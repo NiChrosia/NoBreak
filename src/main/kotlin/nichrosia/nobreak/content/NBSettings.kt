@@ -14,24 +14,61 @@ import java.io.DataOutputStream
 import java.io.EOFException
 import java.io.File
 import kotlin.io.path.pathString
+import kotlin.properties.Delegates
 
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 object NBSettings {
     private val configDir = File(FabricLoader.getInstance().configDir.pathString + "/nobreak")
     private val configFile = File(configDir.path + "/config.dat")
     private val log = LogManager.getLogger("NoBreak")
 
-    var blacklist = PresetScreenDescription.BlacklistPreset.empty
+    val blacklists = object : ArrayList<PresetScreenDescription.BlacklistPreset>() {
+        override fun contains(element: PresetScreenDescription.BlacklistPreset): Boolean {
+            return map { it.translationKey }.contains(element.translationKey)
+        }
+    }
+
+    var customBlacklist = PresetScreenDescription.BlacklistPreset.empty
     var notifyUser = true
 
     var allowAttackingOwnPets = true
     var allowAttackingNeutralMobs = true
 
-    fun breakingAllowedFor(itemStack: ItemStack, player: PlayerEntity): Boolean {
-        return (blacklist.items(player).contains(itemStack.item) ||
-                blacklist.isBreakingAllowed(itemStack)) ||
-                !itemStack.isDamageable ||
-                (if (itemStack.hasEnchantments()) blacklist.isEnchanted(itemStack) else false)
+    fun List<Boolean>.sumByOr(): Boolean {
+        var value by Delegates.notNull<Boolean>()
 
+        forEachIndexed { i, element ->
+            value = if (i == 0) element else value || element
+        }
+
+        return if (size > 0) value else false
+    }
+
+    fun List<Boolean>.sumByAnd(): Boolean {
+        var value by Delegates.notNull<Boolean>()
+
+        forEachIndexed { i, element ->
+            value = if (i == 0) element else value && element
+        }
+
+        return if (size > 0) value else false
+    }
+
+    fun List<PresetScreenDescription.BlacklistPreset>.sumByBreakingAllowedFor(stack: ItemStack, player: PlayerEntity): Boolean {
+        return map {
+            it.breakingAllowedFor(stack, player)
+        }.sumByOr()
+    }
+
+    fun PresetScreenDescription.BlacklistPreset.breakingAllowedFor(stack: ItemStack, player: PlayerEntity): Boolean {
+        return (items(player).contains(stack.item) ||
+                isBreakingAllowed(stack)) ||
+                !stack.isDamageable ||
+                (if (stack.hasEnchantments()) isEnchanted(stack) else false)
+    }
+
+    fun breakingAllowedFor(stack: ItemStack, player: PlayerEntity): Boolean {
+        return customBlacklist.breakingAllowedFor(stack, player) || blacklists.sumByBreakingAllowedFor(stack, player)
     }
 
     fun shouldSucceed(stack: ItemStack): Boolean {
@@ -51,7 +88,11 @@ object NBSettings {
         write.bool(notifyUser)
         write.bool(allowAttackingOwnPets)
         write.bool(allowAttackingNeutralMobs)
-        write.str(blacklist.items(null).joinToString("|") { Registry.ITEM.getId(it).toString() })
+        write.str(
+            customBlacklist.items(null).joinToString("|") { Registry.ITEM.getId(it).toString() } +
+            "\n" +
+            blacklists.joinToString("|") { it.translationKey }
+        )
     }
 
     fun load() {
@@ -63,7 +104,11 @@ object NBSettings {
             notifyUser = read.bool()
             allowAttackingOwnPets = read.bool()
             allowAttackingNeutralMobs = read.bool()
-            blacklist.addItems(read.str().split("|").map { Registry.ITEM.get(Identifier(it)) })
+
+            val (rawCustomBlacklist, rawBlacklists) = read.str().split("\n")
+
+            customBlacklist.addItems(rawCustomBlacklist.split("|").map { Registry.ITEM.get(Identifier(it)) })
+            blacklists.addAll(PresetScreenDescription.BlacklistPreset.types.filter { rawBlacklists.split("|").contains(it.translationKey) })
         } catch(e: EOFException) {
             log.warn("Invalid config, setting values to default.")
         }

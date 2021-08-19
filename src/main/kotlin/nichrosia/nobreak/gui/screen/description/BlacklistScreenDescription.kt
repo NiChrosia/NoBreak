@@ -9,6 +9,7 @@ import net.minecraft.enchantment.Enchantments
 import net.minecraft.item.ItemStack
 import net.minecraft.text.TranslatableText
 import nichrosia.nobreak.content.NBSettings
+import nichrosia.nobreak.content.NBSettings.sumByOr
 import nichrosia.nobreak.gui.screen.PresetScreen
 
 @Suppress("MemberVisibilityCanBePrivate", "LeakingThis")
@@ -32,7 +33,8 @@ open class BlacklistScreenDescription : LightweightGuiDescription() {
 
         val clearButton = WButton(TranslatableText("button.nobreak.reset_blacklist")).apply {
             onClick = Runnable {
-                NBSettings.blacklist = PresetScreenDescription.BlacklistPreset.empty
+                NBSettings.customBlacklist = PresetScreenDescription.BlacklistPreset.empty
+                NBSettings.blacklists.clear()
                 blacklistedItemBox.clearChildren()
 
                 populateBlacklistBox()
@@ -54,9 +56,15 @@ open class BlacklistScreenDescription : LightweightGuiDescription() {
         var rowBox = WBox(Axis.HORIZONTAL)
 
         run forEach@{
-            NBSettings.blacklist.items(MinecraftClient.getInstance().player).forEachIndexed { index, item ->
+            val items = (NBSettings.customBlacklist.items(MinecraftClient.getInstance().player) +
+                         NBSettings.blacklists.map { it.items(MinecraftClient.getInstance().player) }.flatten())
+
+            items.forEachIndexed { index, item ->
                 val stack = ItemStack(item)
-                if (NBSettings.blacklist.isEnchanted(stack)) stack.addEnchantment(Enchantments.MENDING, 1)
+
+                if (NBSettings.customBlacklist.isEnchanted(stack) || NBSettings.blacklists.map { it.isEnchanted(stack) }.sumByOr()) {
+                    stack.addEnchantment(Enchantments.MENDING, 1)
+                }
 
                 rowBox.add(WItem(stack))
 
@@ -69,9 +77,9 @@ open class BlacklistScreenDescription : LightweightGuiDescription() {
                     if (row >= rowsPerColumn) return@forEach
                 }
             }
-        }
 
-        if (NBSettings.blacklist.items(MinecraftClient.getInstance().player).size % elementsPerRow != 0) blacklistedItemBox.add(rowBox)
+            if (items.size % elementsPerRow != 0) blacklistedItemBox.add(rowBox)
+        }
     }
 
     open class WBoxOpen(axis: Axis) : WBox(axis) {
