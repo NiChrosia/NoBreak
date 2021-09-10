@@ -1,7 +1,8 @@
 plugins {
     id 'fabric-loom'
     id 'maven-publish'
-    id "org.jetbrains.kotlin.jvm"
+    id "org.jetbrains.kotlin.jvm" version '1.5.30'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.30'
 }
 
 sourceCompatibility = JavaVersion.VERSION_16
@@ -39,6 +40,8 @@ dependencies {
     modImplementation include("io.github.cottonmc:LibGui:${project.libgui_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
+
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2"
 }
 
 processResources {

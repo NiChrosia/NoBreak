@@ -1,13 +1,13 @@
 package nichrosia.nobreak.content
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.*
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 import nichrosia.nobreak.gui.screen.description.PresetScreenDescription
-import nichrosia.nobreak.util.DataStreams.bool
-import nichrosia.nobreak.util.DataStreams.str
 import org.apache.logging.log4j.LogManager
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -15,11 +15,12 @@ import java.io.File
 import kotlin.io.path.pathString
 import kotlin.properties.Delegates
 
-@Suppress("MemberVisibilityCanBePrivate", "unused")
+@Suppress("MemberVisibilityCanBePrivate", "unused", "NestedLambdaShadowedImplicitParameter")
 object NBSettings {
     private val configDir = File(FabricLoader.getInstance().configDir.pathString + "/nobreak")
-    private val configFile = File(configDir.path + "/config.dat")
+    private val configFile = File(configDir.path + "/config.json")
     private val log = LogManager.getLogger("NoBreak")
+    private val jsonFormat = Json { prettyPrint = true }
 
     val blacklists = object : ArrayList<PresetScreenDescription.BlacklistPreset>() {
         override fun contains(element: PresetScreenDescription.BlacklistPreset): Boolean {
@@ -32,6 +33,31 @@ object NBSettings {
 
     var allowAttackingOwnPets = true
     var allowAttackingNeutralMobs = true
+
+    var json: JsonObject
+        get() = JsonObject(mapOf(
+            "custom_blacklist" to JsonArray(customBlacklist.items(null).map { JsonPrimitive(Registry.ITEM.getId(it).toString()) }),
+            "notify_user" to JsonPrimitive(notifyUser)
+        ))
+        set(value) {
+            try {
+                value["custom_blacklist"]?.jsonArray?.map { it.jsonPrimitive.content }?.let {
+                    customBlacklist.addItems(it.map {
+                        Registry.ITEM.get(it.run {
+                            val (namespace, path) = split(":")
+
+                            Identifier(namespace, path)
+                        })
+                    })
+                }
+
+                value["notify_user"]?.jsonPrimitive?.boolean?.let {
+                    notifyUser = it
+                }
+            } catch(e: IllegalStateException) {
+                log.error("Cannot load JSON config, resetting to default values. (Stacktrace: $e)")
+            }
+        }
 
     fun List<Boolean>.sumByOr(): Boolean {
         var value by Delegates.notNull<Boolean>()
@@ -84,32 +110,20 @@ object NBSettings {
 
         val write = DataOutputStream(configFile.outputStream())
 
-        write.bool(notifyUser)
-        write.bool(allowAttackingOwnPets)
-        write.bool(allowAttackingNeutralMobs)
-        write.str(
-            customBlacklist.items(null).joinToString("|") { Registry.ITEM.getId(it).toString() } +
-            "\n" +
-            blacklists.joinToString("|") { it.translationKey }
-        )
+        write.write(jsonFormat.encodeToString(json.toMap()).toByteArray())
+
+        write.close()
     }
 
     fun load() {
         if (!configFile.exists()) return
 
-        try {
-            val read = DataInputStream(configFile.inputStream())
+        val read = DataInputStream(configFile.inputStream())
 
-            notifyUser = read.bool()
-            allowAttackingOwnPets = read.bool()
-            allowAttackingNeutralMobs = read.bool()
+        json = jsonFormat.parseToJsonElement(read.readBytes().decodeToString()).jsonObject
 
-            val (rawCustomBlacklist, rawBlacklists) = read.str().split("\n")
+        read.close()
 
-            customBlacklist.addItems(rawCustomBlacklist.split("|").map { Registry.ITEM.get(Identifier(it)) })
-            blacklists.addAll(PresetScreenDescription.BlacklistPreset.types.filter { rawBlacklists.split("|").contains(it.translationKey) })
-        } catch(e: Exception) {
-            log.warn("Invalid config, setting values to default.")
-        }
+        log.info("Configuration parsed successfully.")
     }
 }
