@@ -6,10 +6,10 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
 import net.minecraft.client.MinecraftClient
 import net.minecraft.item.ShieldItem
 import net.minecraft.text.TranslatableText
-import nichrosia.nobreak.content.type.Content
-import nichrosia.nobreak.gui.screen.BlacklistScreen
-import nichrosia.nobreak.util.MessageUtilities.inform
-import nichrosia.nobreak.util.MessageUtilities.onOrOff
+import nichrosia.nobreak.type.content.Content
+import nichrosia.nobreak.type.gui.description.BlacklistScreenDescription
+import nichrosia.nobreak.type.gui.screen.BlacklistScreen
+import nichrosia.nobreak.util.*
 
 @Suppress("NestedLambdaShadowedImplicitParameter", "MemberVisibilityCanBePrivate")
 object NBEvents : Content {
@@ -17,8 +17,8 @@ object NBEvents : Content {
         PlayerBlockBreakEvents.BEFORE.register Before@ { _, playerEntity, _, _, _ ->
             val stack = playerEntity.getStackInHand(playerEntity.activeHand)
 
-            if (NBSettings.shouldSucceed(stack)) return@Before true
-            if (NBSettings.breakingAllowedFor(stack, playerEntity)) return@Before true
+            if (stack.hasUsableDurability() || stack.isEmpty) return@Before true
+            if (NBSettings.allBlacklists.any { it.breakingAllowedFor(stack) }) return@Before true
 
             playerEntity.inform(
                 TranslatableText(
@@ -97,7 +97,7 @@ object NBEvents : Content {
                             return@tick
                         }
 
-                        if (NBSettings.customBlacklist.items(player).contains(item)) {
+                        if (NBSettings.customBlacklist.items().contains(item)) {
                             NBSettings.customBlacklist.removeItem(item)
                         } else {
                             NBSettings.customBlacklist.addItem(item)
@@ -106,19 +106,33 @@ object NBEvents : Content {
 
                     player.inform(TranslatableText(
                         "text.nobreak.toggled_item_blacklist",
-                        onOrOff(NBSettings.customBlacklist.items(player).contains(player.mainHandStack.item)),
+                        onOrOff(NBSettings.customBlacklist.items().contains(player.mainHandStack.item)),
                     player.mainHandStack.item.name))
                 }
 
-                /* Location for adding support for disabling armor, if that were to happen in the future
+                if (NBKeyBinds.toggleProtectEnchanted.wasPressed()) {
+                    player.mainHandStack.item.let { item ->
+                        if (!item.isDamageable) return@tick
 
-                [...]
+                        if (item is ShieldItem) {
+                            player.inform(TranslatableText("text.nobreak.shields_not_supported"))
 
-                */
+                            return@tick
+                        }
+
+                        NBSettings.customBlacklist.toggleProtectEnchant(item)
+
+                        player.inform(TranslatableText(
+                            "text.nobreak.toggled_protecting_enchanted_item",
+                            onOrOff(NBSettings.customBlacklist.protectEnchantedItems[item]!!),
+                            item.name
+                        ))
+                    }
+                }
             }
 
             if (NBKeyBinds.openBlacklistScreen.wasPressed()) {
-                MinecraftClient.getInstance().setScreen(BlacklistScreen())
+                MinecraftClient.getInstance().setScreen(BlacklistScreen(BlacklistScreenDescription()))
             }
         }
 

@@ -1,10 +1,10 @@
-package nichrosia.nobreak.ext
+package nichrosia.nobreak.api
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory
 import com.terraformersmc.modmenu.api.ModMenuApi
 
 @Suppress("unused")
-object NBModMenuSettings : ModMenuApi {
+object NBModMenuAPI : ModMenuApi {
     override fun getModConfigScreenFactory(): ConfigScreenFactory<*> {
         return ConfigScreenFactory(NBClothConfigSettings::build)
     }

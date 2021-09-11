@@ -1,4 +1,4 @@
-package nichrosia.nobreak.gui.screen.description.type
+package nichrosia.nobreak.type.gui.description
 
 import io.github.cottonmc.cotton.gui.client.CottonClientScreen
 import io.github.cottonmc.cotton.gui.client.LightweightGuiDescription
@@ -7,7 +7,7 @@ import io.github.cottonmc.cotton.gui.widget.WGridPanel
 import net.minecraft.client.MinecraftClient
 import net.minecraft.text.TranslatableText
 
-open class LessLightweightGuiDescription : LightweightGuiDescription() {
+open class NBGUIDescription : LightweightGuiDescription() {
     open lateinit var backButton: WButton
 
     open fun addBackButton(root: WGridPanel, buttonKey: String = "button.nobreak.back", from: () -> CottonClientScreen) {

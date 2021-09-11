@@ -1,5 +1,6 @@
 {
   "text.nobreak.tool_break_prevented": "§cNoBreak has prevented this block from breaking due to low tool durability, press %s§c to toggle",
+  "text.nobreak.toggled_protecting_enchanted_item": "§7Toggled unenchanted tool breakage to %s",
   "text.nobreak.toggled_tool_breakage": "§7Toggled tool breakage to %s",
   "text.nobreak.toggled_item_blacklist": "§7Toggled item blacklist to %s§7 for %s",
   "text.nobreak.shields_not_supported" : "§cDue to shield code being server-side, preventing shields from breaking is impossible, so they cannot be blacklisted or unblacklisted",
@@ -14,6 +15,7 @@
   "setting.nobreak.allow_attacking_neutral_mobs": "Allow attacking neutral until provoked mobs",
 
   "key.nobreak.toggle_current_item_blacklist": "Toggle blacklist for current item",
+  "key.nobreak.toggle_current_item_protect_enchanted": "Toggle protecting enchanted variants for current item",
   "key.nobreak.open_blacklist_screen": "Open Blacklist Screen",
 
   "button.nobreak.reset_blacklist": "Reset Blacklist",

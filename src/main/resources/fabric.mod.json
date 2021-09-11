@@ -24,7 +24,7 @@
     "modmenu": [
       {
         "adapter": "kotlin",
-        "value": "nichrosia.nobreak.ext.NBModMenuSettings"
+        "value": "nichrosia.nobreak.api.NBModMenuAPI"
       }
     ]
   },

@@ -2,25 +2,17 @@ package nichrosia.nobreak
 
 import net.fabricmc.api.ClientModInitializer
 import nichrosia.nobreak.content.*
-import nichrosia.nobreak.content.type.Content
-import nichrosia.nobreak.type.mod.IdentifiedModInit
+import nichrosia.nobreak.type.content.Content
 import org.apache.logging.log4j.LogManager
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-object NoBreak : ClientModInitializer, IdentifiedModInit {
-    override val modID = "nobreak"
+object NoBreak : ClientModInitializer {
     private val log = LogManager.getLogger("NoBreak")
-
-    internal val content = arrayOf(
-        NBKeyBinds,
-        NBEvents
-    )
+    internal val content = arrayOf(NBKeyBinds, NBEvents, NBSettings)
 
     override fun onInitializeClient() {
         content.forEach(Content::load)
 
-        NBSettings.load()
-
-        log.info("Loaded mod '$modID' successfully.")
+        log.info("Loaded mod successfully.")
     }
 }
