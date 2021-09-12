@@ -1,8 +1,10 @@
 package nichrosia.nobreak.util
 
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.text.Text
+import net.minecraft.util.registry.Registry
 import nichrosia.nobreak.content.NBSettings
 import kotlin.reflect.KMutableProperty0
 
@@ -19,3 +21,6 @@ fun ItemStack.hasUsableDurability(): Boolean {
 fun <K, V> mapOf(list: List<Pair<K, V>>): Map<K, V> {
     return mapOf(*list.toTypedArray())
 }
+
+val Item.id
+    get() = Registry.ITEM.getId(this)

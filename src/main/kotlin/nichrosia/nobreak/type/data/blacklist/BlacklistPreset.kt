@@ -4,44 +4,53 @@ import kotlinx.serialization.json.*
 import net.minecraft.item.*
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
+import nichrosia.nobreak.NoBreak
 import nichrosia.nobreak.type.annotation.data.JsonReadable
 import nichrosia.nobreak.type.annotation.data.JsonWritable
+import nichrosia.nobreak.util.id
 import nichrosia.nobreak.util.mapOf
 
 @Suppress("MemberVisibilityCanBePrivate", "NestedLambdaShadowedImplicitParameter")
 data class BlacklistPreset(
+    val ID: Identifier,
     var translationKey: String = "",
     var icon: ItemStack = ItemStack.EMPTY,
     var isBreakingAllowed: (ItemStack) -> Boolean = { false },
     var items: () -> List<Item> = { listOf() },
     var protectEnchantedItems: MutableMap<Item, Boolean> = mutableMapOf()
 ) : JsonWritable<JsonObject> {
-    var id: Int
-        get() = types.indexOf(this)
-        set(value) {
-            if (value > 0) types[value].let {
+    init {
+        try {
+            types.filter { it.ID == ID }.forEach {
                 translationKey = it.translationKey
                 icon = it.icon
+                isBreakingAllowed = it.isBreakingAllowed
                 items = it.items
             }
-        }
+        } catch(e: Exception) {}
+    }
 
     override fun toJson(): JsonObject {
         return JsonObject(mutableMapOf(
-            "items" to JsonArray(items().map { JsonPrimitive(Registry.ITEM.getId(it).toString()) }),
+            "items" to JsonArray(items().distinctBy { it.id }.map { JsonPrimitive(it.id.toString()) }),
             "protected_enchanted_items" to JsonObject(mapOf(protectEnchantedItems.map { (item, toggled) ->
-                Registry.ITEM.getId(item).toString() to JsonPrimitive(toggled)
-            }))
-        ).apply { if (id != -1) put("id", JsonPrimitive(id)) })
+                item.id.toString() to JsonPrimitive(toggled)
+            }.distinctBy { it.first })),
+            "id" to JsonPrimitive(ID.toString())
+        ))
     }
 
-    fun addItems(items: Iterable<Item>) {
+    fun addItems(items: List<Item>) {
         val previousItems = items()
 
         this.items = { (previousItems + items) }
     }
 
-    fun addItem(item: Item) = addItems(listOf(item))
+    fun addItem(item: Item) {
+        if (items().contains(item)) return
+
+        addItems(listOf(item))
+    }
 
     fun removeItem(item: Item) {
         val previousItems = items()
@@ -73,7 +82,8 @@ data class BlacklistPreset(
     @Suppress("unused")
     companion object : JsonReadable<BlacklistPreset, JsonObject> {
         override fun fromJson(json: JsonObject): BlacklistPreset {
-            val preset = BlacklistPreset()
+            val (idNamespace, idPath) = json["id"]?.jsonPrimitive?.content?.split(":")!!
+            val preset = BlacklistPreset(Identifier(idNamespace, idPath))
 
             json["items"]?.jsonArray?.forEach {
                 it.jsonPrimitive.contentOrNull?.let {
@@ -89,30 +99,28 @@ data class BlacklistPreset(
                 Registry.ITEM.get(Identifier(namespace, path)) to toggled.jsonPrimitive.boolean
             } ?: listOf()))
 
-            json["id"]?.jsonPrimitive?.intOrNull?.let { preset.id = it }
-
             return preset
         }
 
-        val custom = BlacklistPreset("blacklist_preset.empty", ItemStack.EMPTY, { false }, { listOf() })
+        val custom = BlacklistPreset(NoBreak.idOf("custom"), "blacklist_preset.empty", ItemStack.EMPTY, { false }, { listOf() })
 
-        val wood = BlacklistPreset("blacklist_preset.wood", ItemStack(Items.WOODEN_PICKAXE), items = {
+        val wood = BlacklistPreset(NoBreak.idOf("wood"), "blacklist_preset.wood", ItemStack(Items.WOODEN_PICKAXE), items = {
             Registry.ITEM.filter { (it as? ToolItem)?.let { it.material.miningLevel == 0 } == true }
         })
 
-        val stone = BlacklistPreset("blacklist_preset.stone", ItemStack(Items.STONE_PICKAXE), items = {
+        val stone = BlacklistPreset(NoBreak.idOf("stone"), "blacklist_preset.stone", ItemStack(Items.STONE_PICKAXE), items = {
             Registry.ITEM.filter { (it as? ToolItem)?.let { it.material.miningLevel == 1 } == true }
         })
 
-        val iron = BlacklistPreset("blacklist_preset.iron", ItemStack(Items.IRON_PICKAXE), items = {
+        val iron = BlacklistPreset(NoBreak.idOf("iron"), "blacklist_preset.iron", ItemStack(Items.IRON_PICKAXE), items = {
             Registry.ITEM.filter { (it as? ToolItem)?.let { it.material.miningLevel == 2 } == true }
         })
 
-        val diamond = BlacklistPreset("blacklist_preset.diamond", ItemStack(Items.DIAMOND_PICKAXE), items = {
+        val diamond = BlacklistPreset(NoBreak.idOf("diamond"), "blacklist_preset.diamond", ItemStack(Items.DIAMOND_PICKAXE), items = {
             Registry.ITEM.filter { (it as? ToolItem)?.let { it.material.miningLevel == 3 } == true }
         })
 
-        val throwable = BlacklistPreset("blacklist_preset.throwable", ItemStack(Items.ARROW), items = {
+        val throwable = BlacklistPreset(NoBreak.idOf("throwable"), "blacklist_preset.throwable", ItemStack(Items.ARROW), items = {
             Registry.ITEM.filterIsInstance<RangedWeaponItem>() + Registry.ITEM.filterIsInstance<TridentItem>()
         })
 

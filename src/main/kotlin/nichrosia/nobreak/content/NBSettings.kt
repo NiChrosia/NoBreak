@@ -3,6 +3,7 @@ package nichrosia.nobreak.content
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import net.fabricmc.loader.api.FabricLoader
+import nichrosia.nobreak.NoBreak
 import nichrosia.nobreak.type.content.SavableContent
 import nichrosia.nobreak.type.data.blacklist.BlacklistPreset
 import org.apache.logging.log4j.LogManager
@@ -20,14 +21,20 @@ object NBSettings : SavableContent {
 
     val blacklists = object : ArrayList<BlacklistPreset>() {
         override fun contains(element: BlacklistPreset): Boolean {
-            return map { it.translationKey }.contains(element.translationKey)
+            return map { it.ID }.contains(element.ID)
+        }
+
+        override fun add(element: BlacklistPreset): Boolean {
+            if (BlacklistPreset.types.any { it.ID == element.ID }) super.add(BlacklistPreset.types.first { it.ID == element.ID })
+
+            return super.add(element)
         }
     }
 
     val allBlacklists: List<BlacklistPreset>
         get() = blacklists + customBlacklist
 
-    var customBlacklist = BlacklistPreset.custom.copy()
+    var customBlacklist = BlacklistPreset.custom.copy(ID = NoBreak.idOf("copied"))
     var notifyUser = true
 
     var allowAttackingOwnPets = true
@@ -37,7 +44,7 @@ object NBSettings : SavableContent {
         get() = JsonObject(mapOf(
             "custom_blacklist" to customBlacklist.toJson(),
             "notify_user" to JsonPrimitive(notifyUser),
-            "blacklists" to JsonArray(blacklists.map(BlacklistPreset::toJson))
+            "blacklists" to JsonArray(blacklists.distinctBy { it.ID }.map(BlacklistPreset::toJson))
         ))
         set(value) {
             try {
@@ -50,7 +57,8 @@ object NBSettings : SavableContent {
                 }
 
                 value["blacklists"]?.jsonArray?.forEach {
-                    blacklists.add(BlacklistPreset.fromJson(it.jsonObject))
+                    val preset = BlacklistPreset.fromJson(it.jsonObject)
+                    if (blacklists.none { it.ID == preset.ID }) blacklists.add(preset)
                 }
             } catch(e: IllegalStateException) {
                 log.error("Cannot load JSON config, resetting to default values. (Stacktrace: $e)")

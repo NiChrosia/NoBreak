@@ -13,6 +13,7 @@ import net.minecraft.enchantment.Enchantments
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.text.TranslatableText
+import nichrosia.nobreak.NoBreak
 import nichrosia.nobreak.content.NBSettings
 import nichrosia.nobreak.type.gui.screen.PresetScreen
 import nichrosia.nobreak.type.data.blacklist.BlacklistPreset
@@ -47,15 +48,16 @@ open class BlacklistScreenDescription : LightweightGuiDescription() {
 
         root.add(protectEnchantedButton, 7, 0, 1, 2)
 
-        val clearButton = WButton(TranslatableText("button.nobreak.reset_blacklist")).apply {
+        val resetButton = WButton(TranslatableText("button.nobreak.reset_blacklist")).apply {
             onClick = Runnable {
-                NBSettings.customBlacklist = BlacklistPreset.custom.copy()
+                NBSettings.customBlacklist = BlacklistPreset.custom.copy(ID = NoBreak.idOf("copied"))
                 NBSettings.blacklists.clear()
+                BlacklistPreset.types.forEach { it.protectEnchantedItems = mutableMapOf() }
                 repopulateBlacklistBox()
             }
         }
 
-        root.add(clearButton, 8, 0, 5, 1)
+        root.add(resetButton, 8, 0, 5, 1)
 
         val presetButton = WButton(TranslatableText("button.nobreak.open_presets")).apply {
             onClick = Runnable {

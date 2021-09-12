@@ -32,7 +32,9 @@ open class PresetScreenDescription : NBGUIDescription() {
                 rowBox.apply {
                     val presetButton = WButton(ItemIcon(it.icon), TranslatableText(it.translationKey)).apply {
                         onClick = Runnable {
-                            if (!NBSettings.blacklists.contains(it)) NBSettings.blacklists.add(it)
+                            NBSettings.blacklists.apply {
+                                if (any { e -> e.ID == it.ID }) remove(it) else add(it)
+                            }
                         }
                     }
 

@@ -87,40 +87,47 @@ object NBEvents : Content {
 
         ClientTickEvents.END_CLIENT_TICK.register {
             it.player?.let tick@{ player ->
-                if (NBKeyBinds.toggleCurrentItemBlacklist.wasPressed()) {
+                if (NBKeyBinds.toggleCurrentItemBlacklist.wasPressed()) run toggleCurrent@ {
                     player.mainHandStack.item.let { item ->
-                        if (!item.isDamageable) return@tick
+                        if (!item.isDamageable) return@toggleCurrent
 
                         if (item is ShieldItem) {
                             player.inform(TranslatableText("text.nobreak.shields_not_supported"))
 
-                            return@tick
+                            return@toggleCurrent
                         }
 
-                        if (NBSettings.customBlacklist.items().contains(item)) {
-                            NBSettings.customBlacklist.removeItem(item)
-                        } else {
-                            NBSettings.customBlacklist.addItem(item)
+                        when {
+                            NBSettings.customBlacklist.items().contains(item) -> NBSettings.customBlacklist.removeItem(item)
+
+                            NBSettings.blacklists.any { it.items().contains(item) } -> {
+                                player.inform(TranslatableText("text.nobreak.cannot_remove_item_from_preset"))
+                                return@toggleCurrent
+                            }
+
+                            else -> {
+                                NBSettings.customBlacklist.addItem(item)
+                            }
                         }
                     }
 
                     player.inform(TranslatableText(
                         "text.nobreak.toggled_item_blacklist",
-                        onOrOff(NBSettings.customBlacklist.items().contains(player.mainHandStack.item)),
+                        onOrOff(NBSettings.allBlacklists.any { it.items().contains(player.mainHandStack.item) }),
                     player.mainHandStack.item.name))
                 }
 
-                if (NBKeyBinds.toggleProtectEnchanted.wasPressed()) {
+                if (NBKeyBinds.toggleProtectEnchanted.wasPressed()) run protectEnchanted@ {
                     player.mainHandStack.item.let { item ->
-                        if (!item.isDamageable) return@tick
+                        if (!item.isDamageable) return@protectEnchanted
 
                         if (item is ShieldItem) {
                             player.inform(TranslatableText("text.nobreak.shields_not_supported"))
 
-                            return@tick
+                            return@protectEnchanted
                         }
 
-                        NBSettings.customBlacklist.toggleProtectEnchant(item)
+                        NBSettings.allBlacklists.forEach { it.toggleProtectEnchant(item) }
 
                         player.inform(TranslatableText(
                             "text.nobreak.toggled_protecting_enchanted_item",
